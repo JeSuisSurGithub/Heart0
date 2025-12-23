@@ -5,7 +5,9 @@
 
 
 extern volatile uint8_t g_note_on_flag;
-extern volatile uint32_t g_phase_inc;
+extern volatile uint16_t g_current_phase_inc; // actual phase increment
+extern volatile uint16_t g_target_phase_inc;  // set by MIDI note-on
+
 
 void init_midi();
 

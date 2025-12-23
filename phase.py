@@ -26,9 +26,9 @@ def format_lut_c(lut):
     """Format the LUT as a C-style PROGMEM array."""
     lines = []
     for i in range(0, len(lut), 8):
-        line = ", ".join(f"{v}UL" for v in lut[i:i+8])
+        line = ", ".join(f"{v}" for v in lut[i:i+8])
         lines.append("    " + line)
-    return "const uint32_t phase_lut[128] PROGMEM = {\n" + ",\n".join(lines) + "\n};"
+    return "const uint16_t phase_lut[128] PROGMEM = {\n" + ",\n".join(lines) + "\n};"
 
 if __name__ == "__main__":
     lut = generate_phase_lut()

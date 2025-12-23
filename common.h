@@ -8,7 +8,8 @@
 #define PORT_CS PB2
 #define PORT_SCLK PB5
 #define PORT_MOSI PB3
-#define BUTTON_PIN  PD5
+#define BUTTON_PIN PD5
+
 
 #include <stdbool.h>
 #include <stdint.h>
