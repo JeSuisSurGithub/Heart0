@@ -28,9 +28,8 @@ volatile uint8_t midi_data1 = 0;
 volatile uint8_t midi_byte_count = 0;
 volatile uint8_t last_note = 0;
 volatile uint8_t g_note_on_flag = 0;
-volatile uint16_t g_current_phase_inc = 0; // actual phase increment
-volatile uint16_t g_target_phase_inc = 0;  // set by MIDI note-on
-
+volatile uint16_t g_phase_inc = 0;
+volatile bool g_update_keypress = false;
 
 void init_midi()
 {
@@ -69,8 +68,8 @@ ISR(USART_RX_vect) {
                 } else {
                     last_note = midi_data1;
                     g_note_on_flag = 1;
-                    g_target_phase_inc = pgm_read_word(&phase_lut[last_note]);
-
+                    g_phase_inc = pgm_read_word(&phase_lut[last_note]);
+                    g_update_keypress = true;
                 }
                 midi_byte_count = 0;
             }
