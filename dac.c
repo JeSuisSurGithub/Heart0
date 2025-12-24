@@ -1,4 +1,3 @@
-#include "midi.h"
 #include "dac.h"
 
 #include <avr/io.h>
@@ -14,7 +13,7 @@ void spi_send(uint8_t data) {
 
 void dac_write(DAC_CH channel, uint16_t value) {
     PORTB &= ~(1 << PORT_CS);  // CS low
-    uint16_t scaled = (channel == WAVE) ? (value >> 1) : value;
+    uint16_t scaled = value;
 
     switch (channel)
     {

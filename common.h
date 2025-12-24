@@ -2,7 +2,7 @@
 #define COMMON_H
 
 #define F_CPU 8000000UL
-#define SAMPLE_RATE 32000
+#define SAMPLE_RATE 24000
 #define PORT_RX PD0
 #define PORT_VGATE PB1
 #define PORT_CS PB2

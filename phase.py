@@ -1,7 +1,7 @@
 import math
 
 # Configuration
-SAMPLE_RATE = 32000     # default sample rate in Hz
+SAMPLE_RATE = 24000     # default sample rate in Hz
 A4_FREQ = 432           # tuning frequency for A4
 TABLE_SIZE = 128        # number of MIDI notes
 PHASE_BITS = 16         # number of bits for phase accumulator

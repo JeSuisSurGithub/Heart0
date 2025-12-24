@@ -8,7 +8,7 @@ OBJDUMP = avr-objdump
 AVRDUDE = sudo avrdude
 
 # -------- Flags --------
-CFLAGS  = -Os -mmcu=$(MCU) -Wall -Wextra
+CFLAGS  = -O3 -mmcu=$(MCU) -Wall -Wextra
 LDFLAGS = -mmcu=$(MCU)
 
 # -------- Files --------

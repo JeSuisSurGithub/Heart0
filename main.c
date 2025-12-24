@@ -9,16 +9,16 @@
 #include <util/delay.h>
 
 typedef enum WAVEFORM {
-    SAW = 0,
-    SQU = 1,
-    PW_SAW = 2,
-    PW_SQU = 3,
+    PW_SAW = 0,
+    PW_SQU = 1,
+    SAW = 2,
+    SQU = 3,
     SINE = 4,
     CAMEL = 5,
     TRI = 6,
-    ABS = 7,
-    HALF = 8,
-    TRI_SAW = 9,
+    TRI_SAW = 7,
+    ABS = 8,
+    HALF = 9,
     _MAX = 10
 } WAVEFORM;
 
@@ -26,8 +26,11 @@ typedef enum WAVEFORM {
 uint8_t wave_select = 0;
 volatile uint16_t phase = 0;
 volatile uint16_t cutoff = 32768;
+volatile uint16_t env_decay = 1;
 volatile uint16_t pwm = 0;
 volatile bool pwm_dir = 0;
+volatile uint16_t audio_sample;
+volatile bool audio_ready = false;
 
 uint16_t pwm_saw(uint16_t phase, uint16_t pw)
 {
@@ -83,6 +86,14 @@ uint8_t button_pressed()
     return 0;
 }
 
+uint16_t adc_read(uint8_t channel)
+{
+    ADMUX = (ADMUX & 0xF0) | (channel & 0x0F);
+    ADCSRA |= (1 << ADSC);
+    while(ADCSRA & (1 << ADSC));
+    return ADC;
+}
+
 int main(void) {
     init_midi();
     init_dac();
@@ -100,53 +111,22 @@ int main(void) {
     DDRD  &= ~(1 << BUTTON_PIN);
     PORTD |=  (1 << BUTTON_PIN);
 
+    // Env Decay
+    ADMUX = (1 << REFS0);
+    ADCSRA = (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
+
     sei();
     while (true) {
-        if (g_update_dac_flag) {
-            g_update_dac_flag = false;
-            switch (wave_select) {
-                case SAW:
-                    dac_write(WAVE, pwm_saw(phase, 0));
-                    break;
-
-                case SQU:
-                    dac_write(WAVE, pwm_squ(phase, 2047));
-                    break;
-
-                case PW_SAW:
-                    dac_write(WAVE, pwm_saw(phase, pwm >> 4));
-                    break;
-
-                case PW_SQU:
-                    dac_write(WAVE, pwm_squ(phase, pwm >> 4));
-                    break;
-                case SINE:
-                    dac_write(WAVE, read_wave(phase,sine_table));
-                    break;
-                case CAMEL:
-                    dac_write(WAVE, read_wave(phase,camel_sine_table));
-                    break;
-                case TRI:
-                    dac_write(WAVE, read_wave(phase,tri_table));
-                    break;
-                case ABS:
-                    dac_write(WAVE, read_wave(phase,abs_sine_table));
-                    break;
-                case HALF:
-                    dac_write(WAVE, read_wave(phase,half_sine_table));
-                    break;
-                case TRI_SAW:
-                    dac_write(WAVE, read_wave(phase,tri_saw_table));
-                    break;
-                default: break;
-            }
-
+        if (audio_ready) {
+            audio_ready = false;
             dac_write(FILTER_CV, cutoff >> 4);
         }
         if (button_pressed()) {
             wave_select++;
             if (wave_select == _MAX) wave_select = 0;
         }
+    uint16_t adc_env_decay = adc_read(0);
+    env_decay = (adc_env_decay >> 6) + 1;
     }
 }
 
@@ -154,22 +134,46 @@ int main(void) {
 
 ISR(TIMER1_COMPA_vect)
 {
+    // push last sample
+    dac_write(WAVE, audio_sample);
+
+    // phase update
     phase += g_phase_inc;
+
+    // generate NEXT sample
+    switch (wave_select) {
+        case PW_SAW: audio_sample = pwm_saw(phase, pwm >> 4); break;
+        case PW_SQU: audio_sample = pwm_squ(phase, pwm >> 4); break;
+        case SAW: audio_sample = pwm_saw(phase, 0); break;
+        case SQU: audio_sample = pwm_squ(phase, 2047); break;
+        case SINE: audio_sample = read_wave(phase, sine_table); break;
+        case CAMEL: audio_sample = read_wave(phase, camel_sine_table); break;
+        case TRI: audio_sample = read_wave(phase, tri_table); break;
+        case TRI_SAW: audio_sample = read_wave(phase, tri_saw_table); break;
+        case ABS: audio_sample = read_wave(phase, abs_sine_table); break;
+        case HALF: audio_sample = read_wave(phase, half_sine_table); break;
+        default: audio_sample = 2048; break;
+    }
+    audio_ready = true;
+
     if (g_update_keypress) {
         g_update_keypress = false;
         cutoff = 32768;
     }
 
+    if (cutoff > env_decay) {
+            cutoff = cutoff - env_decay;
+    } else {
+        cutoff = 0;
+    }
+
     if (g_note_on_flag) {
-        if (cutoff > 0) {
-            cutoff = cutoff - 2;
-        }
         if (!pwm_dir) {
-            pwm = pwm + 1;
-            pwm_dir = pwm > 57344;
+            pwm = pwm + 2;
+            pwm_dir = pwm > 63488;
         } else {
-            pwm = pwm - 1;
-            pwm_dir = pwm > 8192;
+            pwm = pwm - 2;
+            pwm_dir = pwm > 2048;
         }
     }
 
