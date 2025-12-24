@@ -1,6 +1,6 @@
 #ifndef WAVES_H
 #define WAVES_H
-#include "common.h"
+
 #include <avr/pgmspace.h>
 
 extern const uint8_t sine_table[256] PROGMEM;

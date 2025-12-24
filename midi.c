@@ -1,4 +1,3 @@
-#include "common.h"
 #include "midi.h"
 
 #include <avr/io.h>

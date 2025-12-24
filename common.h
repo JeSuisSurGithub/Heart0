@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-// Input MIDI, Waveselect
+// Input MIDI, Waveselect, Env decay pot
 // Output Gate, Waveform and CV
 /**
     GND VCC AVCC AVREF
@@ -24,8 +24,9 @@
     PB2-PB5 MCP4922 (CS MOSI MISO SCK)
     PD0 MIDI IN (UART RX)
     PD5 Switch Waveform
+    PC0 Env Decay Pot
 
-    PC0-PC3 Potentiometers
+    PC2-PC3 Potentiometers
     PD6 PWM
 
     PB0 Unused Timer Capture

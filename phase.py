@@ -1,3 +1,5 @@
+# Thanks ChatGPT ! 😀
+
 import math
 
 # Configuration
@@ -12,7 +14,7 @@ def midi_to_freq(midi_note, a4_freq=A4_FREQ):
 
 def phase_increment(freq, sample_rate=SAMPLE_RATE, phase_bits=PHASE_BITS):
     """
-    Compute the 32-bit phase increment for a given frequency.
+    Compute the 16-bit phase increment for a given frequency.
     Formula: increment = freq * 2^phase_bits / sample_rate
     """
     return int((freq * (1 << phase_bits)) / sample_rate)

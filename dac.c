@@ -2,33 +2,31 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdint.h>
 
 volatile bool g_update_dac_flag = false;
 
 void spi_send(uint8_t data) {
     SPDR = data;
-    while (!(SPSR & (1 << SPIF))); // wait for transmission complete
+    while (!(SPSR & (1 << SPIF)));
 }
 
 void dac_write(DAC_CH channel, uint16_t value) {
-    PORTB &= ~(1 << PORT_CS);  // CS low
-    uint16_t scaled = value;
+    PORTB &= ~(1 << PORT_CS);
 
     switch (channel)
     {
         case WAVE:
-            spi_send(0x30 | ((scaled >> 8) & 0x0F));
+            spi_send(0x30 | ((value >> 8) & 0x0F));
             break;
         case FILTER_CV:
-            spi_send(0xB0 | ((scaled >> 8) & 0x0F));
+            spi_send(0xB0 | ((value >> 8) & 0x0F));
             break;
         default: break;
     }
 
-    spi_send(scaled & 0xFF);
+    spi_send(value & 0xFF);
 
-    PORTB |= (1 << PORT_CS);   // CS high (update output)
+    PORTB |= (1 << PORT_CS);
 }
 
 void init_dac()

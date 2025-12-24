@@ -1,3 +1,4 @@
+# Thanks ChatGPT ! 😀
 import numpy as np
 
 n_samples = 256       # Table size
@@ -28,6 +29,26 @@ saw = t / n_samples            # 0..1
 tri_saw = 0.5*saw + 0.5*(2*np.abs(2*(t/n_samples)-1)-1)/2 + 0.5  # normalize to 0..1
 tri_saw = np.clip(tri_saw*max_val, 0, max_val).astype(np.uint8)
 
+folded_sine = np.sin(2*np.pi*t/n_samples)
+folded_sine = np.abs(folded_sine)*2 - 1
+folded_sine = np.clip((folded_sine*0.5 + 0.5)*max_val, 0, max_val).astype(np.uint8)
+
+exp_sine = np.sin(2*np.pi*t/n_samples)
+exp_sine = np.sign(exp_sine) * (np.abs(exp_sine) ** 0.5)
+exp_sine = ((exp_sine*0.5 + 0.5)*max_val).astype(np.uint8)
+
+clip_sine = np.sin(2*np.pi*t/n_samples)
+clip_sine = np.clip(clip_sine, -0.6, 0.6)
+clip_sine = ((clip_sine + 0.6) / 1.2 * max_val).astype(np.uint8)
+
+x = (t / n_samples) * 2 - 1
+parabola = 1 - x*x
+parabola = np.clip(parabola*max_val, 0, max_val).astype(np.uint8)
+
+bit_sine = np.sin(2*np.pi*t/n_samples)
+bit_sine = ((bit_sine*0.5 + 0.5)*max_val)
+bit_sine = (bit_sine // 8 * 8).astype(np.uint8)
+
 # -------------------------
 # Function to print PROGMEM table
 def print_table(name, data):
@@ -43,3 +64,36 @@ print_table("tri_table", tri)
 print_table("abs_sine_table", abs_sine)
 print_table("half_sine_table", half_sine)
 print_table("tri_saw_table", tri_saw)
+print_table("folded_sine_table", folded_sine)
+print_table("exp_sine_table", exp_sine)
+print_table("clip_sine_table", clip_sine)
+print_table("parabola_table", parabola)
+print_table("bit_sine_table", bit_sine)
+
+import matplotlib.pyplot as plt
+
+waves = {
+    "sine": sine,
+    "camel": camel_sine,
+    "tri": tri,
+    "abs": abs_sine,
+    "half": half_sine,
+    "tri_saw": tri_saw,
+    "folded": folded_sine,
+    "exp": exp_sine,
+    "clip": clip_sine,
+    "parabola": parabola,
+    "bit": bit_sine,
+}
+
+plt.figure(figsize=(12, 8))
+
+for i, (name, wave) in enumerate(waves.items(), 1):
+    plt.subplot(4, 3, i)
+    plt.plot(wave, linewidth=1)
+    plt.title(name)
+    plt.ylim(0, 255)
+    plt.grid(True)
+
+plt.tight_layout()
+plt.show()
