@@ -11,7 +11,7 @@ extern volatile bool g_note_on_flag;
 extern volatile bool g_update_keypress;
 extern volatile uint16_t g_phase_inc;
 extern volatile uint16_t g_phase_inc_target;
-extern volatile uint16_t glide_rate;
+extern volatile uint16_t g_glide_rate;
 
 
 void init_midi();

@@ -65,15 +65,15 @@ ISR(TIMER0_COMPA_vect)
 {
     if (g_phase_inc < g_phase_inc_target) {
         uint16_t delta = g_phase_inc_target - g_phase_inc;
-        if (delta > glide_rate)
-            g_phase_inc += glide_rate;
+        if (delta > g_glide_rate)
+            g_phase_inc += g_glide_rate;
         else
             g_phase_inc = g_phase_inc_target;
     }
     else if (g_phase_inc > g_phase_inc_target) {
         uint16_t delta = g_phase_inc - g_phase_inc_target;
-        if (delta > glide_rate)
-            g_phase_inc -= glide_rate;
+        if (delta > g_glide_rate)
+            g_phase_inc -= g_glide_rate;
         else
             g_phase_inc = g_phase_inc_target;
     }

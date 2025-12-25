@@ -32,7 +32,7 @@ volatile bool g_note_on_flag = false;
 volatile bool g_update_keypress = false;
 volatile uint16_t g_phase_inc = 0;
 volatile uint16_t g_phase_inc_target = 0;
-volatile uint16_t glide_rate = 8;
+volatile uint16_t g_glide_rate = 4;
 
 
 void init_midi()
@@ -89,6 +89,7 @@ ISR(USART_RX_vect) {
                     g_note_on_flag = true;
                     g_update_keypress = true;
                     g_phase_inc_target = pgm_read_word(&phase_lut[last_note]);
+                    g_glide_rate = 4 + (g_phase_inc_target >> 8);
                     PORTB |= (1 << PORT_VGATE);
                 }
                 midi_byte_count = 0;
