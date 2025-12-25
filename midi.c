@@ -27,9 +27,13 @@ volatile uint8_t midi_status = 0;
 volatile uint8_t midi_data1 = 0;
 volatile uint8_t midi_byte_count = 0;
 volatile uint8_t last_note = 0;
-volatile uint8_t g_note_on_flag = 0;
-volatile uint16_t g_phase_inc = 0;
+
+volatile bool g_note_on_flag = false;
 volatile bool g_update_keypress = false;
+volatile uint16_t g_phase_inc = 0;
+volatile uint16_t g_phase_inc_target = 0;
+volatile uint16_t glide_rate = 8;
+
 
 void init_midi()
 {
@@ -37,7 +41,7 @@ void init_midi()
     // Normal speed, enable RX and ISR, 8N1
     DDRD &= ~(1 << PORT_RX);
     DDRB |= (1 << PORT_VGATE);
-    uint16_t ubrr = (F_CPU / (16UL * 31250)) - 1;
+    uint16_t ubrr = (F_CPU / (16UL * MIDI_BAUD)) - 1;
     UBRR0H = ubrr >> 8;
     UBRR0L = ubrr & 0xFF;
 
@@ -49,16 +53,31 @@ void init_midi()
 ISR(USART_RX_vect) {
     uint8_t b = UDR0;
 
-    // Status byte
+    // Ignore clock
+    if (b >= 0xF8)
+        return;
+
     if (b & 0x80) {
-        midi_status = b;
-        midi_byte_count = 0;
+        uint8_t st = b & 0xF0;
+        // Only Note On/Off
+        if (st == NOTE_ON || st == NOTE_OFF) {
+            midi_status = b;
+            midi_byte_count = 0;
+        } else {
+            midi_byte_count = 0;
+        }
+        return;
+    }
+
+
+    // Only if we are in Note On/Off
+    if ((midi_status & 0xF0) != NOTE_ON &&
+        (midi_status & 0xF0) != NOTE_OFF) {
         return;
     }
 
     switch (midi_status & 0xF0) {
-
-        case 0x90: // Note ON
+        case NOTE_ON: // Note ON
             if (midi_byte_count == 0) {
                 midi_data1 = b;
                 midi_byte_count = 1;
@@ -67,29 +86,27 @@ ISR(USART_RX_vect) {
                     g_note_on_flag = 0;
                 } else {
                     last_note = midi_data1;
-                    g_note_on_flag = 1;
-                    g_phase_inc = pgm_read_word(&phase_lut[last_note]);
+                    g_note_on_flag = true;
                     g_update_keypress = true;
+                    g_phase_inc_target = pgm_read_word(&phase_lut[last_note]);
+                    PORTB |= (1 << PORT_VGATE);
                 }
                 midi_byte_count = 0;
             }
             break;
 
-        case 0x80: // Note OFF
+        case NOTE_OFF: // Note OFF
             if (midi_byte_count == 0) {
                 midi_data1 = b;
                 midi_byte_count = 1;
             } else {
                 g_note_on_flag = 0;
-                // phase_inc = 0;
+                // g_phase_inc = 0; Hold
+                PORTB &= ~(1 << PORT_VGATE);
                 midi_byte_count = 0;
             }
             break;
-    }
 
-    if (g_note_on_flag) {
-        PORTB |= (1 << PORT_VGATE);   // PB1 HIGH
-    } else {
-        PORTB &= ~(1 << PORT_VGATE);  // PB1 LOW
+        default: break;
     }
 }
