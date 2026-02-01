@@ -51,14 +51,14 @@ flash: $(HEX)
 # Internal RC 8MHz, CKDIV8 disabled (recommended)
 fuses-8mhz:
 	$(AVRDUDE) -p $(PART) -c $(PROGRAMMER) \
-		-U lfuse:w:0xE4:m \
+		-U lfuse:w:0xE2:m \
 		-U hfuse:w:0xD9:m \
 		-U efuse:w:0xFF:m
 
 # Internal RC 8MHz, CKDIV8 enabled (1MHz system clock)
 fuses-1mhz:
 	$(AVRDUDE) -p $(PART) -c $(PROGRAMMER) \
-		-U lfuse:w:0xE2:m \
+		-U lfuse:w:0x62:m \
 		-U hfuse:w:0xD9:m \
 		-U efuse:w:0xFF:m
 
