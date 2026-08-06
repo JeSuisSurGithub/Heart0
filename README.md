@@ -3,4 +3,5 @@ Firmware for a partially digital synthesizer, the ATmega328p handles MIDI, Filte
 
 The VCF is quite broken and needs to be reworked
 
-<img src="heart0-1.png"/>
+![heart0-1.avif](/heart0-1.avif)
+![heart0.avif](/heart0.avif)
